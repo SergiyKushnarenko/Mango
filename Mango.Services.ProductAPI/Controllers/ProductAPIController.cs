@@ -52,13 +52,12 @@ namespace Mango.Services.ProductAPI.Controllers
         }
 
         [HttpPost]
-        [Route("{id}")]
-        public async Task<object> CreateandUpdate(int id)
+        public async Task<object> Post([FromBody]ProductDto productDto)
         {
             try
             {
-                ProductDto productDto = await _productRepository.GetProductById(id);
-                responseDto.Result = productDto;
+                ProductDto productDtoModel = await _productRepository.CreateUpdateProduct(productDto);
+                responseDto.Result = productDtoModel;
 
             }
             catch (Exception ex)
@@ -69,5 +68,38 @@ namespace Mango.Services.ProductAPI.Controllers
             return responseDto;
         }
 
+        [HttpPut]
+        public async Task<object> Put([FromBody] ProductDto productDto)
+        {
+            try
+            {
+                ProductDto productDtoModel = await _productRepository.CreateUpdateProduct(productDto);
+                responseDto.Result = productDtoModel;
+
+            }
+            catch (Exception ex)
+            {
+                responseDto.ErrorMessages = new List<string>() { ex.ToString() };
+                responseDto.IsSuccess = false;
+            }
+            return responseDto;
+        }
+
+        [HttpDelete]
+        public async Task<object> Delete(int id)
+        {
+            try
+            {
+                var IsSuccess = await _productRepository.DeleteProduct(id);
+                responseDto.Result = IsSuccess;
+
+            }
+            catch (Exception ex)
+            {
+                responseDto.ErrorMessages = new List<string>() { ex.ToString() };
+                responseDto.IsSuccess = false;
+            }
+            return responseDto;
+        }
     }
 }

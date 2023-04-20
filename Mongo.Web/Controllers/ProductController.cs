@@ -1,4 +1,5 @@
-﻿using Mango.Web.Models;
+﻿using Azure.Core;
+using Mango.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +18,12 @@ namespace Mongo.Web.Controllers
         }
 
 
-        public async  Task<IActionResult> ProductIndex()
+        public async Task<IActionResult> ProductIndex()
         {
             List<ProductDto> productList = new();
-            var response = await _productService.GetAllProductsAsync<ResponseDto>();
-            if(response != null && response.IsSuccess)
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _productService.GetAllProductsAsync<ResponseDto>(accessToken);
+            if (response != null && response.IsSuccess)
             {
                 productList = JsonConvert.DeserializeObject<List<ProductDto>>(Convert.ToString(response.Result));
             }
@@ -30,7 +32,7 @@ namespace Mongo.Web.Controllers
 
         public async Task<IActionResult> ProductCreate()
         {
-            
+
             return View();
         }
 
@@ -40,7 +42,8 @@ namespace Mongo.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _productService.CreateProductAsync<ResponseDto>(productDto);
+                var accessToken = await HttpContext.GetTokenAsync("access_token");
+                var response = await _productService.CreateProductAsync<ResponseDto>(productDto, accessToken);
                 if (response != null && response.IsSuccess)
                 {
                     return RedirectToAction(nameof(ProductIndex));
@@ -51,7 +54,8 @@ namespace Mongo.Web.Controllers
 
         public async Task<IActionResult> ProductEdit(int productId)
         {
-            var response = await _productService.GetProductByIdAsync<ResponseDto>(productId);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _productService.GetProductByIdAsync<ResponseDto>(productId, accessToken);
             if (response != null && response.IsSuccess)
             {
                 ProductDto model = JsonConvert.DeserializeObject<ProductDto>(Convert.ToString(response.Result));
@@ -66,7 +70,8 @@ namespace Mongo.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _productService.UpdateProductAsync<ResponseDto>(productDto);
+                var accessToken = await HttpContext.GetTokenAsync("access_token");
+                var response = await _productService.UpdateProductAsync<ResponseDto>(productDto, accessToken);
                 if (response != null && response.IsSuccess)
                 {
                     return RedirectToAction(nameof(ProductIndex));
@@ -78,8 +83,8 @@ namespace Mongo.Web.Controllers
 
         public async Task<IActionResult> ProductDelete(int productId)
         {
-           
-            var response = await _productService.GetProductByIdAsync<ResponseDto>(productId);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _productService.GetProductByIdAsync<ResponseDto>(productId, accessToken);
             if (response != null && response.IsSuccess)
             {
                 ProductDto model = JsonConvert.DeserializeObject<ProductDto>(Convert.ToString(response.Result));
@@ -91,12 +96,13 @@ namespace Mongo.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ProductDelete(ProductDto model)
         {
-                var response = await _productService.DeleteProductAsync<ResponseDto>(model.ProductId);
-                if (response.IsSuccess)
-                {
-                    return RedirectToAction(nameof(ProductIndex));
-                }
-            
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _productService.DeleteProductAsync<ResponseDto>(model.ProductId, accessToken);
+            if (response.IsSuccess)
+            {
+                return RedirectToAction(nameof(ProductIndex));
+            }
+
             return View(model);
         }
     }

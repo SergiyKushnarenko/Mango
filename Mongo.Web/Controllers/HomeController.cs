@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mongo.Web.Models;
 using System.Diagnostics;
@@ -31,13 +32,14 @@ namespace Mongo.Web.Controllers
         }
 
         [Authorize]
-		public IActionResult Login()
+		public async Task<IActionResult> Login()
 		{
+            var a = await HttpContext.GetTokenAsync("access_token");
             return RedirectToAction(nameof(Index));
 		}
 		public IActionResult Logout()
 		{
-			return SignOut("Cookies","iodc");
+			return SignOut("Cookies","oidc");
 		}
 	}
 }

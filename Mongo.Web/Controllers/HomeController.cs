@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Mango.Web.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mongo.Web.Models;
+using Mongo.Web.Services.IServices;
+using Newtonsoft.Json;
 using System.Diagnostics;
 
 namespace Mongo.Web.Controllers
@@ -9,15 +12,35 @@ namespace Mongo.Web.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IProductService _productService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IProductService productService = null)
         {
             _logger = logger;
+            _productService = productService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            List<ProductDto> list = new();
+            var response = await _productService.GetAllProductsAsync<ResponseDto>("");
+            if (response != null && response.IsSuccess)
+            {
+                list = JsonConvert.DeserializeObject<List<ProductDto>>(Convert.ToString(response.Result));
+            }
+            return View(list);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Details(int productId)
+        {
+            ProductDto model = new();
+            var response = await _productService.GetProductByIdAsync<ResponseDto>(productId,"");
+            if (response != null && response.IsSuccess)
+            {
+                model = JsonConvert.DeserializeObject<ProductDto>(Convert.ToString(response.Result));
+            }
+            return View(model);
         }
 
         public IActionResult Privacy()

@@ -1,5 +1,5 @@
 ﻿using Azure.Core;
-using Mango.Web.Models;
+using Mongo.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

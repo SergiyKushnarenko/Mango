@@ -1,6 +1,5 @@
-using Mango.Services.ShoppingCartAPI;
-using Mango.Services.ShoppingCartAPI.DbContexts;
-using Mango.Services.ShoppingCartAPI.Repository;
+using Mango.Services.CouponAPI;
+using Mango.Services.CouponAPI.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -9,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+
 builder.Services.AddDbContext<ApplicationDbContext>(option =>
 option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -16,7 +16,7 @@ var mapper = MapperConfig.RegisterMaps().CreateMapper();
 
 builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddScoped<ICartRepository, CartRepository>();
+//builder.Services.AddScoped<ICartRepository, CartRepository>();
 
 
 builder.Services.AddControllers();
@@ -43,7 +43,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mango.Services.ShoppingCartAPI", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mango.Services.CouponAPI", Version = "v1" });
     c.EnableAnnotations();
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -74,7 +74,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 

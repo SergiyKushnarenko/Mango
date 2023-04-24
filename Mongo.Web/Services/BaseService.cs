@@ -9,6 +9,7 @@ namespace Mongo.Web.Services
 {
     public class BaseService : IBaseService
     {
+     
         public ResponseDto responseModel { get; set; }
         public IHttpClientFactory httpClient { get; set; }
 

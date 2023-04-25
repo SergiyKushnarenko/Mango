@@ -84,6 +84,7 @@ namespace Mongo.Web.Controllers
             return View(productDto);
         }
 
+
         public IActionResult Privacy()
         {
             return View();

@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Mango.MessageBus;
 using Mango.Services.ShoppingCartAPI.Messages;
 using Mango.Services.ShoppingCartAPI.Models.Dto;
 using Mango.Services.ShoppingCartAPI.Repository;
@@ -12,12 +13,16 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
     {
         private readonly ICartRepository _cartRepository;
         private readonly ICouponRepository _couponRepository;
+        private readonly IMessageBus _messageBus;
+        private readonly IConfiguration configuration;
         protected ResponseDto _response;
-        public CartAPIController(ICartRepository cartRepository, ICouponRepository couponRepository)
+        public CartAPIController(ICartRepository cartRepository, ICouponRepository couponRepository, IConfiguration configuration, IMessageBus messageBus)
         {
             _cartRepository = cartRepository;
             this._response = new ResponseDto();
             _couponRepository = couponRepository;
+            this.configuration = configuration;
+            _messageBus = messageBus;
         }
 
         [HttpGet("GetCart/{userId}")]
@@ -143,7 +148,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
 
                 checkoutHeader.CartDetails = cartDto.CartDetails;
                 //logic to add message to process order.
-                //await _messageBus.PublishMessage(checkoutHeader, "checkoutqueue");
+                await _messageBus.PublichMessage(checkoutHeader, configuration.GetSection("TopicName").Value.ToString());
 
                 ////rabbitMQ
                 //_rabbitMQCartMessageSender.SendMessage(checkoutHeader, "checkoutqueue");

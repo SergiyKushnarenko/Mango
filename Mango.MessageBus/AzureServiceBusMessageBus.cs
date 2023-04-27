@@ -1,5 +1,5 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
+﻿
+using Azure.Messaging.ServiceBus;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,16 +15,18 @@ namespace Mango.MessageBus
 
         public async Task PublichMessage(BaseMessage message, string topicName)
         {
-            ISenderClient senderClient = new TopicClient(connectionString, topicName);
+            await using var client = new ServiceBusClient(connectionString);
+
+            ServiceBusSender sender = client.CreateSender(topicName);
 
             var JsonMessage = JsonConvert.SerializeObject(message);
-            var finalMessage = new Message(Encoding.UTF8.GetBytes(JsonMessage))
+            ServiceBusMessage finalMessage = new(Encoding.UTF8.GetBytes(JsonMessage))
             {
                 CorrelationId = Guid.NewGuid().ToString()
             };
-            await senderClient.SendAsync(finalMessage);
+            await sender.SendMessageAsync(finalMessage);
 
-            await senderClient.CloseAsync();
+            await client.DisposeAsync();
         }
     }
 }

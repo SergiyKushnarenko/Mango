@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PaymentProcessor
 {
-    internal interface IProcessPaymant
+    public interface IProcessPaymant
     {
         bool PaymentProcessor();
     }

@@ -1,3 +1,4 @@
+using Mango.MessageBus;
 using Mango.Services.OrderAPI.DbContexts;
 using Mango.Services.OrderAPI.Extension;
 using Mango.Services.OrderAPI.Messaging;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql.Replication.PgOutput.Messages;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,7 @@ optionBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnec
 
 builder.Services.AddSingleton(new OrderRepository(optionBuilder.Options));
 builder.Services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
+builder.Services.AddSingleton<IMessageBus, AzureServiceBusMessageBus>();
 
 builder.Services.AddControllers();
 builder.Services.AddAuthentication("Bearer")

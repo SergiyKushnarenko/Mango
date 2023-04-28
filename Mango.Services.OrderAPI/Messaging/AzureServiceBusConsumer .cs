@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Mango.MessageBus;
 using Mango.Services.OrderAPI.Messages;
 using Mango.Services.OrderAPI.Models;
 using Mango.Services.OrderAPI.Repository;
@@ -12,12 +13,14 @@ namespace Mango.Services.OrderAPI.Messaging
         private readonly string serviceBusConnectionString;
         private readonly string subscriptionCheckOut;
         private readonly string checkoutMessageTopic;
+        private readonly string orderPaymentProcessTopic;
         private readonly OrderRepository _orderRepository;
 
         private ServiceBusProcessor checkOutProcessor;
 
         private readonly IConfiguration _configuration;
-        public AzureServiceBusConsumer(OrderRepository orderRepository, IConfiguration configuration)
+        private readonly IMessageBus _messageBus;
+        public AzureServiceBusConsumer(OrderRepository orderRepository, IConfiguration configuration, IMessageBus messageBus)
         {
             _orderRepository = orderRepository;
             _configuration = configuration;
@@ -25,10 +28,12 @@ namespace Mango.Services.OrderAPI.Messaging
             serviceBusConnectionString = _configuration.GetValue<string>("ServiceBusConnectionString");
             subscriptionCheckOut = _configuration.GetValue<string>("SubscriptionCheckOut");
             checkoutMessageTopic = _configuration.GetValue<string>("CheckoutMessageTopic");
+            orderPaymentProcessTopic = _configuration.GetValue<string>("OrderPaymentProcessTopic");
 
             var client = new ServiceBusClient(serviceBusConnectionString);
 
             checkOutProcessor = client.CreateProcessor(checkoutMessageTopic, subscriptionCheckOut);
+            _messageBus = messageBus;
         }
 
         public async Task Start()
@@ -70,11 +75,11 @@ namespace Mango.Services.OrderAPI.Messaging
                 DiscountTotal = checkoutHeaderDto.DiscountTotal,
                 Email = checkoutHeaderDto.Email,
                 ExpiryMonthYear = checkoutHeaderDto.ExpiryMonthYear,
-                OrderTime = DateTime.Now,
+                OrderTime = DateTime.UtcNow,
                 OrderTotal = checkoutHeaderDto.OrderTotal,
                 PaymentStatus = false,
                 Phone = checkoutHeaderDto.Phone,
-                PickupDateTime = checkoutHeaderDto.PickupDateTime
+                PickupDateTime = DateTime.UtcNow
             };
             foreach (var detailList in checkoutHeaderDto.CartDetails)
             {
@@ -89,7 +94,27 @@ namespace Mango.Services.OrderAPI.Messaging
                 orderHeader.OrderDetails.Add(orderDetails);
             }
 
-            await _orderRepository.AddOrder(orderHeader);
+           await _orderRepository.AddOrder(orderHeader);
+
+            PaymentRequestMessage paymentRequestMessage = new()
+            {
+                Name = orderHeader.FirstName + " " + orderHeader.LastName,
+                CardNumber = orderHeader.CardNumber,
+                CVV = orderHeader.CVV,
+                ExpiryMonthYear = orderHeader.ExpiryMonthYear,
+                OrderId = orderHeader.OrderHeaderId,
+                OrderTotal = orderHeader.OrderTotal
+            };
+
+            try
+            {
+                await _messageBus.PublichMessage(paymentRequestMessage, orderPaymentProcessTopic);
+                await args.CompleteMessageAsync(args.Message);
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
     }
 }

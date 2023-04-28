@@ -24,6 +24,10 @@ builder.Services.AddSingleton<IMessageBus, AzureServiceBusMessageBus>();
 
 
 builder.Services.AddControllers();
+
+builder.Services.AddHttpClient<ICouponRepository, CouponRepository>(u => u.BaseAddress =
+              new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
+
 builder.Services.AddHttpClient<ICouponRepository, CouponRepository>(u => u.BaseAddress =
               new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
 builder.Services.AddAuthentication("Bearer")

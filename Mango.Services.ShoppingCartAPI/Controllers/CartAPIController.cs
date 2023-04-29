@@ -148,11 +148,11 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
 
                 checkoutHeader.CartDetails = cartDto.CartDetails;
                 //logic to add message to process order.
-                await _messageBus.PublichMessage(checkoutHeader, configuration.GetSection("TopicName").Value.ToString());
+                await _messageBus.PublichMessage(checkoutHeader, configuration.GetSection("CheckoutQueue").Value.ToString());
 
                 ////rabbitMQ
                 //_rabbitMQCartMessageSender.SendMessage(checkoutHeader, "checkoutqueue");
-                //await _cartRepository.ClearCart(checkoutHeader.UserId);
+                await _cartRepository.ClearCart(checkoutHeader.UserId);
             }
             catch (Exception ex)
             {
